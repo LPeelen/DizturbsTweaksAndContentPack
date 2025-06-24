@@ -16,7 +16,7 @@ import java.util.List;
 public class NerfedOpenMarket extends OpenMarketPlugin {
 
     public static final Setting<List<String>> LEGAL_SHIP_KEYWORDS = new Setting<>("legalShipKeywords", List.of(), String.class);
-    public static final Setting<List<String>> LEGAL_ITEM_TYPES = new Setting<>("legalItemTypes", List.of(), String.class);
+    public static final Setting<List<String>> LEGAL_ITEM_KEYWORDS = new Setting<>("legalItemKeywords", List.of(), String.class);
     private static final Logger LOGGER = Global.getLogger(NerfedOpenMarket.class);
 
     @Override
@@ -62,9 +62,10 @@ public class NerfedOpenMarket extends OpenMarketPlugin {
 
         List<CargoStackAPI> cargoStacks = submarket.getCargo().getStacksCopy();
         for (CargoStackAPI cargoStack : cargoStacks) {
-            boolean isLegal = LEGAL_ITEM_TYPES.get()
+            boolean isLegal = LEGAL_ITEM_KEYWORDS.get()
                     .stream()
-                    .anyMatch(type -> cargoStack.getType().name().equalsIgnoreCase(type));
+                    .anyMatch(keyword -> cargoStack.getType().name().equalsIgnoreCase(keyword)
+                            || !cargoStack.getCommodityId().equalsIgnoreCase(keyword));
 
             if (isLegal) {
                 continue;
