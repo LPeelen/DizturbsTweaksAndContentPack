@@ -1,5 +1,5 @@
 {
-  "legalHullKeywords": [
+  "legalShipKeywords": [
     "Civilian",
     "Freighter",
     "Liner",
@@ -9,5 +9,10 @@
     "Drone Tender",
     "Shuttle",
     "Apogee"
+  ],
+  "legalItemTypes": [
+    "Resources",
+    "Special",
+    "Null"
   ]
 }

@@ -2,6 +2,7 @@ package dtcp;
 
 import com.fs.starfarer.api.BaseModPlugin;
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.CargoStackAPI;
 import com.fs.starfarer.api.campaign.PlayerMarketTransaction;
 import com.fs.starfarer.api.campaign.SubmarketPlugin;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
@@ -61,15 +62,19 @@ public class DTCPModPlugin extends BaseModPlugin {
         market.removeSubmarket(Submarkets.SUBMARKET_OPEN);
         market.addSubmarket(Submarkets.SUBMARKET_OPEN);
 
-        // Copy the vanilla submarket ship catalog to the nerfed submarket ship catalog.
-        // Actual filtering of military ships is handled by the nerfed open market plugin.
+        // Copy the vanilla submarket cargo to the nerfed submarket ship catalog.
+        // Actual filtering of legal items and ships is handled by the nerfed open market plugin.
         SubmarketAPI nerfedOpenMarket = market.getSubmarket(Submarkets.SUBMARKET_OPEN);
         SubmarketPlugin vanillaPlugin = vanillaOpenMarket.getPlugin();
         SubmarketPlugin nerfedPlugin = nerfedOpenMarket.getPlugin();
 
-        nerfedPlugin.getCargo().getMothballedShips().clear();
+        nerfedPlugin.getCargo().clear();
         for (FleetMemberAPI ship : vanillaPlugin.getCargo().getMothballedShips().getMembersListCopy()) {
             nerfedPlugin.getCargo().getMothballedShips().addFleetMember(ship);
+        }
+
+        for (CargoStackAPI cargoStack : vanillaPlugin.getCargo().getStacksCopy()) {
+            nerfedPlugin.getCargo().addFromStack(cargoStack);
         }
 
         // Copy the state of the vanilla submarket to the nerfed submarket.

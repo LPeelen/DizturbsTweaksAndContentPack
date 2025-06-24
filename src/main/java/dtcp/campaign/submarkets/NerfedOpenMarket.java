@@ -1,6 +1,7 @@
 package dtcp.campaign.submarkets;
 
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.CargoStackAPI;
 import com.fs.starfarer.api.campaign.FleetDataAPI;
 import com.fs.starfarer.api.campaign.econ.SubmarketAPI;
 import com.fs.starfarer.api.combat.ShipHullSpecAPI;
@@ -14,7 +15,8 @@ import java.util.List;
 
 public class NerfedOpenMarket extends OpenMarketPlugin {
 
-    public static final Setting<List<String>> LEGAL_HULL_KEYWORDS = new Setting<>("legalHullKeywords", List.of(), String.class);
+    public static final Setting<List<String>> LEGAL_SHIP_KEYWORDS = new Setting<>("legalShipKeywords", List.of(), String.class);
+    public static final Setting<List<String>> LEGAL_ITEM_TYPES = new Setting<>("legalItemTypes", List.of(), String.class);
     private static final Logger LOGGER = Global.getLogger(NerfedOpenMarket.class);
 
     @Override
@@ -30,7 +32,7 @@ public class NerfedOpenMarket extends OpenMarketPlugin {
 
         // If the list of keywords is empty for whatever reason then don't do anything.
         // Otherwise, nothing will be sold on the open market.
-        if (LEGAL_HULL_KEYWORDS.get().isEmpty()) {
+        if (LEGAL_SHIP_KEYWORDS.get().isEmpty()) {
             return;
         }
 
@@ -41,7 +43,7 @@ public class NerfedOpenMarket extends OpenMarketPlugin {
             // The conditions inside 'anyMatch' are order from most to least likely to be truthy.
             // NOTE: For reasons unknown to me. Hints of some ships that are found inside ship_data.csv are-
             // accessed via 'getTags()' instead of 'getHints()'.
-            boolean isLegal = LEGAL_HULL_KEYWORDS.get()
+            boolean isLegal = LEGAL_SHIP_KEYWORDS.get()
                     .stream()
                     .anyMatch(keyword -> isInHintSet(keyword, hull.getHints())
                             || hull.getTags().contains(keyword)
@@ -56,6 +58,22 @@ public class NerfedOpenMarket extends OpenMarketPlugin {
                     + submarket.getMarket().getName());
 
             shipsForSale.removeFleetMember(ship);
+        }
+
+        List<CargoStackAPI> cargoStacks = submarket.getCargo().getStacksCopy();
+        for (CargoStackAPI cargoStack : cargoStacks) {
+            boolean isLegal = LEGAL_ITEM_TYPES.get()
+                    .stream()
+                    .anyMatch(type -> cargoStack.getType().name().equalsIgnoreCase(type));
+
+            if (isLegal) {
+                continue;
+            }
+
+            LOGGER.info("Removing item '" + cargoStack.getDisplayName() + "' from open market at '"
+                    + submarket.getMarket().getName());
+
+            submarket.getCargo().removeStack(cargoStack);
         }
     }
 
